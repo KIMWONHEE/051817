@@ -62,6 +62,7 @@ public class MyPainter extends View {
 
         if (stamp == true) {
             drawStamp();
+            invalidate();
         }
 
         //--- eraser

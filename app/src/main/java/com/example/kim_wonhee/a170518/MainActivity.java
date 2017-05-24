@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -14,7 +15,6 @@ public class MainActivity extends AppCompatActivity {
     CheckBox stamp_checkBox;
 
     int check_Bluring, check_Coloring, check_Penwidthbig = 0;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,30 +57,31 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == 1) {
-            if (check_Bluring == 0) {
-                check_Bluring = 1;
+            ++check_Bluring;
+            if (check_Bluring % 2 == 1) {
                 myPainter.setOperationType("bluring");
                 item.setChecked(true);
             } else {
-                check_Bluring = 0;
+                myPainter.setOperationType("notbluring");
                 item.setChecked(false);
             }
         } else if (item.getItemId() == 2) {
-            if (check_Coloring == 0) {
-                check_Coloring = 1;
+            ++check_Coloring;
+            if (check_Coloring % 2 == 1) {
                 myPainter.setOperationType("coloring");
                 item.setChecked(true);
             } else {
-                check_Coloring = 0;
+                myPainter.setOperationType("notcoloring");
                 item.setChecked(false);
             }
         } else if (item.getItemId() == 3) {
-            if (check_Penwidthbig == 0) {
+            ++check_Penwidthbig;
+            if (check_Penwidthbig % 2 == 1) {
                 check_Penwidthbig = 1;
                 myPainter.setOperationType("penwidthbig");
                 item.setChecked(true);
             } else {
-                check_Coloring = 0;
+                myPainter.setOperationType("notpenwidthbig");
                 item.setChecked(false);
             }
         } else if (item.getItemId() == 4) {
@@ -88,16 +89,6 @@ public class MainActivity extends AppCompatActivity {
         } else if (item.getItemId() == 5) {
             myPainter.setOperationType("pencolorblue");
         }
-
-//            case 2:
-//                myPainter.setOperationType("coloring");
-//            case 3:
-//                myPainter.setOperationType("penwidthbig");
-//            case 4:
-//                myPainter.setOperationType("pencolorred");
-//            case 5:
-//                myPainter.setOperationType("pencolorblue");
-//            default:
 
         return super.onOptionsItemSelected(item);
     }
@@ -108,11 +99,14 @@ public class MainActivity extends AppCompatActivity {
             myPainter.setOperationType("eraser");
             stamp_checkBox.setChecked(false);
         } else if (v.getId() == R.id.open_button) {
+            myPainter.file = getFilesDir() + "Canvas.jpg";
             myPainter.setOperationType("open");
             stamp_checkBox.setChecked(false);
         } else if (v.getId() == R.id.save_button) {
+            myPainter.file = getFilesDir() + "Canvas.jpg";
             myPainter.setOperationType("save");
             stamp_checkBox.setChecked(false);
+            Toast.makeText(this, "저장완료", Toast.LENGTH_SHORT).show();
         } else if (v.getId() == R.id.rotate_button) {
             myPainter.setOperationType("rotate");
             stamp_checkBox.setChecked(true);

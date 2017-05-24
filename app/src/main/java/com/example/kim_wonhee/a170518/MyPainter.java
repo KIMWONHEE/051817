@@ -14,9 +14,12 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 
 /**
@@ -31,6 +34,8 @@ public class MyPainter extends View {
 
     String operationType = "";
 
+    String file = "";
+
     boolean stamp = false;
 
     int oldX = -1;
@@ -43,50 +48,56 @@ public class MyPainter extends View {
         super(context);
 
         this.mPaint = new Paint();
-        this.mPaint.setColor(Color.WHITE);
     }
 
     public MyPainter(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
         this.mPaint = new Paint();
-        this.mPaint.setColor(Color.WHITE);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-//        if (mBitmap != null) {
-//            canvas.drawBitmap(mBitmap, 0, 0, null);
-//        }
-        //canvas.drawBitmap(mBitmap, 0, 0, mPaint);
-
         if (stamp == true) {
             drawStamp();
         }
 
+        //--- eraser
         if (operationType.equals("eraser")) {
             mBitmap.eraseColor(Color.DKGRAY);
-            //invalidate();
-        } else if (operationType.equals("open")) {
-
-        } else if (operationType.equals("save")) {
-            //Save(Canvas);
-        } else {
-
+            invalidate();
+            operationType = "";
         }
 
-        //--- bluring 효과
+        //--- open
+        if (operationType.equals("open")) {
+            Open(file);
+            invalidate();
+            operationType = "";
+        }
+
+        //--- save
+        if (operationType.equals("save")) {
+            Save(file);
+            invalidate();
+            operationType = "";
+            //Toast.makeText(getContext(), "저장완료", Toast.LENGTH_SHORT).show();
+        }
+
+        //--- bluring
         if (operationType.equals("bluring")) {
             if (stamp == true) {
                 BlurMaskFilter blur = new BlurMaskFilter(15, BlurMaskFilter.Blur.NORMAL);
                 mPaint.setMaskFilter(blur);
                 //invalidate();
             }
+        } else if (operationType.equals("notbluring")) {
+            mPaint.reset();
         }
 
-        //--- coloring 효과
+        //--- coloring
         if (operationType.equals("coloring")) {
             if (stamp == true) {
                 float[] matrixarray = { 2f, 0f, 0f, 0f, -25f,
@@ -96,11 +107,15 @@ public class MyPainter extends View {
                 ColorMatrix matrix = new ColorMatrix(matrixarray);
                 mPaint.setColorFilter(new ColorMatrixColorFilter(matrix));
             }
+        } else if (operationType.equals("notcoloring")) {
+            mPaint.reset();
         }
 
         //--- Pen Width Big
         if (operationType.equals("penwidthbig")) {
             mPaint.setStrokeWidth(5);
+        } else if (operationType.equals("notpenwidthbig")) {
+            mPaint.setStrokeWidth(3);
         }
 
         //--- Pen Color Red
@@ -113,26 +128,7 @@ public class MyPainter extends View {
             mPaint.setColor(Color.BLUE);
         }
 
-        if (operationType == null) {
-            BlurMaskFilter blur = new BlurMaskFilter(-15, BlurMaskFilter.Blur.NORMAL);
-            mPaint.setMaskFilter(blur);
-        }
-
         canvas.drawBitmap(mBitmap, 0, 0, null);
-
-
-//        else if (operationType.equals("rotate")) {
-//            drawStamp();
-//        } else if (operationType.equals("move")) {
-//            drawStamp();
-//        } else if (operationType.equals("scale")) {
-//            drawStamp();
-//        } else  {
-//            drawStamp();
-//        }
-
-        //canvas.drawBitmap(mBitmap, 10, 10, mPaint);
-
     }
 
     @Override
@@ -176,7 +172,8 @@ public class MyPainter extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-
+        mPaint.setStrokeWidth(3);
+        mPaint.setColor(Color.WHITE);
         mCanvas = new Canvas();
         mCanvas.setBitmap(mBitmap);
         mCanvas.drawColor(Color.DKGRAY);
@@ -187,7 +184,7 @@ public class MyPainter extends View {
         invalidate();
     }
 
-    //--- stamp 찍기
+    //--- stamp 효과
     private void drawStamp() {
         Bitmap stamp = BitmapFactory.decodeResource(getResources(), R.drawable.heart);
 
@@ -195,30 +192,34 @@ public class MyPainter extends View {
         height = stamp.getHeight();
 
         stamp = Bitmap.createScaledBitmap(stamp, width/3, height/3, true);
-//        if (operationType.equals("stamp"))
-//            mCanvas.drawBitmap(stamp, oldX, oldY, mPaint);
-//        else
+
         if (operationType.equals("rotate")) {
             mCanvas.rotate(30, this.getWidth() / 2, this.getHeight() / 2);
             mCanvas.drawBitmap(stamp, oldX, oldY, mPaint);
             mCanvas.rotate(-30, this.getWidth() / 2, this.getHeight() / 2);
+            Toast.makeText(getContext(), "ROTATE", Toast.LENGTH_SHORT).show();
+            operationType = "";
         } else if (operationType.equals("move")) {
             mCanvas.translate(10, 10);
             mCanvas.drawBitmap(stamp, oldX, oldY, mPaint);
             mCanvas.translate(-10, -10);
+            Toast.makeText(getContext(), "MOVE", Toast.LENGTH_SHORT).show();
+            operationType = "";
         } else if (operationType.equals("scale")) {
             mCanvas.scale(1.5f, 1.5f);
             mCanvas.drawBitmap(stamp, oldX, oldY, mPaint);
             mCanvas.scale(0.67f, 0.67f);
+            Toast.makeText(getContext(), "SCALE", Toast.LENGTH_SHORT).show();
+            operationType = "";
         } else if (operationType.equals("skew")) {
             mCanvas.skew(0.2f, 0.0f);
             mCanvas.drawBitmap(stamp, oldX, oldY, mPaint);
             mCanvas.skew(-0.2f, 0.0f);
+            Toast.makeText(getContext(), "SKEW", Toast.LENGTH_SHORT).show();
+            operationType = "";
         } else {
             mCanvas.drawBitmap(stamp, oldX, oldY, mPaint);
         }
-
-
     }
 
     //--- 파일 저장하기
@@ -227,6 +228,7 @@ public class MyPainter extends View {
             FileOutputStream out = new FileOutputStream(file_name);
             mBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
             out.close();
+            Toast.makeText(getContext(), "저장완료", Toast.LENGTH_SHORT).show();
             return true;
         } catch (FileNotFoundException e) {
             Log.e("FileNotFoundException", e.getMessage());
@@ -234,6 +236,28 @@ public class MyPainter extends View {
             Log.e("IOException", e.getMessage());
         }
         return false;
+    }
+
+    //--- 파일 읽어오기
+    public void Open(String file_name) {
+        Bitmap prev = BitmapFactory.decodeFile(file_name);
+        if (prev != null) {
+            mBitmap.eraseColor(Color.DKGRAY);
+
+            int prev_width = prev.getWidth();
+            int prev_height = prev.getHeight();
+
+            prev = Bitmap.createScaledBitmap(prev, prev_width / 2, prev_height / 2, false);
+
+            int prev_X = mCanvas.getWidth() / 2 - prev_width / 4;
+            int prev_Y = mCanvas.getHeight() / 2 - prev_height / 4;
+
+            mCanvas.drawBitmap(prev, prev_X, prev_Y, mPaint);
+
+            Toast.makeText(getContext(), "저장된 파일을 열었습니다. ", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), "저장된 파일이 없습니다. ", Toast.LENGTH_SHORT).show();
+        }
     }
 
 }
